@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Wireshark to Observe the TCP 3-Way Handshake</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Prepare the Hosts to Capture the Traffic</p>
+                <p>Part 2: Analyze the Packets using Wireshark</p>
+                <p>Part 3: View the Packets using tcpdump</p>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>In this lab, you will use Wireshark to capture and examine packets generated between the PC browser using the HyperText Transfer Protocol (HTTP) and a web server, such as www.google.com. When an application, such as HTTP or File Transfer Protocol (FTP) first starts on a host, TCP uses the three-way handshake to establish a reliable TCP session between the two hosts. For example, when a PC uses a web browser to surf the internet, a three-way handshake is initiated, and a session is established between the PC host and web server. A PC can have multiple, simultaneous, active TCP sessions with various web sites.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation virtual machine</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Prepare the Hosts to Capture the Traffic</h3>
+                <p>a. Start the CyberOps VM. Log in with username <strong>analyst</strong> and the password <strong>cyberops</strong>.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>b. Start Mininet.</p>
+                <pre>[analyst@secOps ~]$ sudo lab.support.files/scripts/cyberops_topo.py</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>c. Start host H1 and H4 in Mininet.</p>
+                <pre>*** Starting CLI:
+mininet> xterm H1
+mininet> xterm H4</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>d. Start the web server on H4.</p>
+                <pre>[root@secOps analyst]# /home/analyst/lab.support.files/scripts/reg_server_start.sh</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>e. For security purposes, you are not able to run Firefox from the root user account. On host H1, use the switch user command to switch from the root user to the analyst user account:</p>
+                <pre>[root@secOps analyst]# su analyst</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>f. Start the web browser on H1. This will take a few moments.</p>
+                <pre>[analyst@secOps ~]$ firefox &</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>g. After the Firefox window opens, start a tcpdump session in the terminal Node: H1 and send the output to a file called capture.pcap. With the -v option, you can watch the progress. This capture will stop after capturing 50 packets, as it is configured with the option -c 50.</p>
+                <pre>[analyst@secOps ~]$ sudo tcpdump -i H1-eth0 -v -c 50 -w /home/analyst/capture.pcap</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>h. After the tcpdump starts, quickly navigate to 172.16.0.40 in the Firefox web browser.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <h3>Part 2: Analyze the Packets using Wireshark</h3>
+                <h4>Step 1: Apply a filter to the saved capture.</h4>
+                <p>a. Press ENTER to see the prompt. Start Wireshark on Node: H1. Click OK when prompted by the warning regarding running Wireshark as superuser.</p>
+                <pre>[analyst@secOps ~]$ wireshark &</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>b. In Wireshark, click File > Open. Select the saved pcap file located at /home/analyst/capture.pcap.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>c. Apply a tcp filter to the capture. In this example, the first 3 frames are the interested traffic.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <h4>Step 2: Examine the information within packets including IP addresses, TCP port numbers, and TCP control flags.</h4>
+                <p>a. In this example, frame 1 is the start of the three-way handshake between the PC and the server on H4. In the packet list pane (top section of the main window), select the first packet, if necessary.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>b. Click the arrow to the left of the Transmission Control Protocol in the packet details pane to expand it and examine the TCP information. Locate the source and destination port information.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>c. Click the arrow to the left of the Flags. A value of 1 means that flag is set. Locate the flag that is set in this packet.</p>
+                
+                <p><strong>Note:</strong> You may have to adjust the top and middle windows sizes within Wireshark to display the necessary information.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">What is the TCP source port number?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">How would you classify the source port?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the TCP destination port number?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">How would you classify the destination port?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Which flag (or flags) is set?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the relative sequence number set to?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>d. Select the next packet in the three-way handshake. In this example, this is frame 2. This is the web server replying to the initial request to start a session.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">What are the values of the source and destination ports?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Which flags are set?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What are the relative sequence and acknowledgment numbers set to?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>e. Finally, select the third packet in the three-way handshake.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>Examine the third and final packet of the handshake.</p>
+                
+                <p class="question">Which flag (or flags) is set?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>The relative sequence and acknowledgment numbers are set to 1 as a starting point. The TCP connection is established and communication between the source computer and the web server can begin.</p>
+
+                <h3>Part 3: View the Packets using tcpdump</h3>
+                <p>You can also view the pcap file and filter for the desired information.</p>
+                <p>a. Open a new terminal window, enter man tcpdump. Note: You may need to press ENTER to see the prompt.</p>
+                <p>Using the manual pages available with the Linux operating system, you read or search through the manual pages for options for selecting the desired information from the pcap file.</p>
+                <pre>[analyst@secOps ~]$ man tcpdump
+TCPDUMP(1)                  General Commands Manual                 TCPDUMP(1)
+
+NAME
+       tcpdump - dump traffic on a network
+
+SYNOPSIS
+       tcpdump [ -AbdDefhHIJKlLnNOpqStuUvxX# ] [ -B buffer_size ]
+               [ -c count ]
+               [ -C file_size ] [ -G rotate_seconds ] [ -F file ]
+               [ -i interface ] [ -j tstamp_type ] [ -m module ] [ -M secret ]
+               [ --number ] [ -Q in|out|inout ]
+               [ -r file ] [ -V file ] [ -s snaplen ] [ -T type ] [ -w file ]
+               [ -W filecount ]
+               [ -E spi@ipaddr algo:secret,... ]
+               [ -y datalinktype ] [ -z postrotate-command ] [ -Z user ]
+               [ --time-stamp-precision=tstamp_precision ]
+               [ --immediate-mode ] [ --version ]
+               [ expression ]
+<some output omitted></pre>
+
+                <p>To search through the man pages, you can use / (searching forward) or ? (searching backward) to find specific terms, and n to forward to the next match and q to quit. For example, search for the information on the switch -r, type /-r. Type n to move to the next match.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p class="question">What does the switch -r do?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>b. In the same terminal, open the capture file using the following command to view the first 3 TCP packets captured:</p>
+                <pre>[analyst@secOps ~]$ tcpdump -r /home/analyst/capture.pcap tcp -c 3
+reading from file capture.pcap, link-type EN10MB (Ethernet)
+13:58:30.647462 IP 10.0.0.11.58716 > 172.16.0.40.http: Flags [S], seq 2432755549, win 29200, options [mss 1460,sackOK,TS val 3864513189 ecr 0,nop,wscale 9], length 0
+13:58:30.647543 IP 172.16.0.40.http > 10.0.0.11.58716: Flags [S.], seq 1766419191, ack 2432755550, win 28960, options [mss 1460,sackOK,TS val 50557410 ecr 3864513189,nop,wscale 9], length 0
+13:58:30.647544 IP 10.0.0.11.58716 > 172.16.0.40.http: Flags [.], ack 1, win 58, options [nop,nop,TS val 3864513189 ecr 50557410], length 0</pre>
+
+                <p>To view the 3-way handshake, you may need to increase the number of lines after the -c option.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>c. Navigate to the terminal used to start Mininet. Terminate the Mininet by entering quit in the main CyberOps VM terminal window.</p>
+                <pre>mininet> quit
+*** Stopping 0 controllers
+*** Stopping 2 terms
+*** Stopping 5 links
+.....
+*** Stopping 1 switches
+s1 
+*** Stopping 5 hosts
+H1 H2 H3 H4 R1 
+*** Done
+[analyst@secOps ~]$</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>d. After quitting Mininet, enter sudo mn -c to clean up the processes started by Mininet. Enter the password cyberops when prompted.</p>
+                <pre>[analyst@secOps ~]$ sudo mn -c
+[sudo] password for analyst:</pre>
+                
+                <div class="screenshot-container"></div>
+            </section>
+
+            <section>
+                <h2>Reflection Questions</h2>
+                <p class="question">1. There are hundreds of filters available in Wireshark. A large network could have numerous filters and many different types of traffic. List three filters that might be useful to a network administrator.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">2. What other ways could Wireshark be used in a production network?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

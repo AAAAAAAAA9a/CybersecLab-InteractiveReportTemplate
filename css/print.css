@@ -1,0 +1,83 @@
+@media print {
+    .no-print {
+        display: none;
+    }
+    
+    .screenshot-upload {
+        border: 1px solid #eee;
+        padding: 5px;
+        min-height: auto;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .screenshot-upload:empty {
+        display: none;
+    }
+    
+    .screenshot-upload img {
+        margin: 0 auto;
+    }
+    
+    .text-answer {
+        border: 1px solid #eee;
+    }
+    
+    .text-answer:empty{
+        display: none;
+    }
+    
+    body {
+        padding: 10px;
+        font-size: 0.8em;
+    }
+    
+    .page-break {
+        page-break-before: always;
+    }
+    
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+    
+    .report-info {
+        font-size: 1em;
+        width: 100% !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    .report-header {
+        page-break-after: avoid;
+        break-after: avoid;
+        margin-bottom: 20mm;
+    }
+    
+    .report-info, .report-info td {
+        border: 1px solid black !important;
+        border-collapse: collapse !important;
+    }
+    
+    .report-info input {
+        border: none;
+        background: transparent;
+        width: 100%;
+    }
+    
+    body, body.dark-mode {
+        background-color: white;
+        color: black;
+    }
+    
+    body.dark-mode pre, body.dark-mode h1, body.dark-mode h2, 
+    body.dark-mode h3, body.dark-mode h4,
+    body.dark-mode .text-answer, body.dark-mode .report-info td,
+    body.dark-mode .report-info input {
+        background-color: white;
+        color: black;
+        border-color: #ccc;
+    }
+}

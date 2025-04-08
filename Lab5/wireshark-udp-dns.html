@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Wireshark to Examine a UDP DNS Capture</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Record a PC's IP Configuration Information</p>
+                <p>Part 2: Use Wireshark to Capture DNS Queries and Responses</p>
+                <p>Part 3: Analyze Captured DNS or UDP Packets</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation virtual machine</li>
+                    <li>Internet access</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>When you use the internet, you use the Domain Name System (DNS). DNS is a distributed network of servers that translates user-friendly domain names like www.google.com to an IP address. When you type a website URL into your browser, your PC performs a DNS query to the DNS server's IP address. Your PC's DNS query and the DNS server's response make use of the User Datagram Protocol (UDP) as the transport layer protocol. UDP is connectionless and does not require a session setup as does TCP. DNS queries and responses are very small and do not require the overhead of TCP.</p>
+                <p>In this lab, you will communicate with a DNS server by sending a DNS query using the UDP transport protocol. You will use Wireshark to examine the DNS query and response exchanges with the same server.</p>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Record VM's IP Configuration Information</h3>
+                <p>In Part 1, you will use commands on your CyberOps Workstation VM to find and record the MAC and IP addresses of your VM's virtual network interface card (NIC), the IP address of the specified default gateway, and the DNS server IP address specified for the PC. Record this information in the table provided. The information will be used in parts of this lab with packet analysis.</p>
+                
+                <table class="report-info">
+                    <tr>
+                        <td width="50%"><strong>Description</strong></td>
+                        <td width="50%"><strong>Settings</strong></td>
+                    </tr>
+                    <tr>
+                        <td>IP address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>MAC address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Default gateway IP address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>DNS server IP address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                </table>
+
+                <p>a. Your CyberOps Workstation VM network settings should be set to bridged adapter. To check your network settings go to: Machine > Settings, select Network, the tab Adapter 1, Attached to: Bridged Adapter.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. Open a terminal in the VM. Enter ifconfig at the prompt to display interface information. If you do not have an IP address on your local network, run the following command in the terminal:</p>
+                <pre>[analyst@secOps ~]$ sudo lab.support.files/scripts/configure_as_dhcp.sh
+Configuring the NIC to request IP info via DHCP...
+Requesting IP information...
+IP Configuration successful.</pre>
+
+                <p>Note: In Part 1, your results will vary depending on your local area network settings and internet connection.</p>
+                <pre>[analyst@secOps ~]$ ifconfig
+enp0s3: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt; mtu 1500
+ inet 192.168.8.10 netmask 255.255.255.0 broadcast 192.168.8.255
+ inet6 fe80::a00:27ff:fe82:75df prefixlen 64 scopeid 0x20&lt;link&gt;
+ ether 08:00:27:82:75:df txqueuelen 1000 (Ethernet)
+ RX packets 41953 bytes 14354223 (13.6 MiB)
+ RX errors 0 dropped 0 overruns 0 frame 0
+ TX packets 15249 bytes 1723493 (1.6 MiB)
+ TX errors 0 dropped 0 overruns 0 carrier 0 collisions 0
+&lt;some output omitted&gt;</pre>
+
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>c. At the terminal prompt, enter cat /etc/resolv.conf to determine the DNS server.</p>
+                <pre>[analyst@secOps ~]$ cat /etc/resolv.conf
+# Resolver configuration file.
+# See resolv.conf(5) for details.
+nameserver 8.8.4.4
+nameserver 209.165.200.235</pre>
+
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. At the terminal prompt, enter netstat -rn to display the IP routing table to the default gateway IP address.</p>
+                <pre>[analyst@secOps ~]$ netstat -rn
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+0.0.0.0         192.168.8.1     0.0.0.0         UG      0 0         0    enp0s3
+192.168.8.0     0.0.0.0         255.255.255.0   U       0 0         0    enp0s3
+192.168.8.1     0.0.0.0         255.255.255.255 UH      0 0         0    enp0s3</pre>
+
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>Note: The DNS IP address and default gateway IP address are often the same, especially in small networks. However, in a business or school network, the addresses would most likely be different.</p>
+            </section>
+
+            <section>
+                <h3>Part 2: Use Wireshark to Capture DNS Queries and Responses</h3>
+                <p>In Part 2, you will set up Wireshark to capture DNS query and response packets. This will demonstrate the use of the UDP transport protocol while communicating with a DNS server.</p>
+                
+                <p>a. In the terminal window, start Wireshark and click OK when prompted.</p>
+                <pre>[analyst@secOps ~]$ wireshark &</pre>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. In the Wireshark window, select and double-click enp0s3 from the interface list.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>c. Open the web browser and navigate to www.google.com.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. Click Stop to stop the Wireshark capture when you see Google's home page.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+            </section>
+
+            <section>
+                <h3>Part 3: Analyze Captured DNS or UDP Packets</h3>
+                <p>In Part 3, you will examine the UDP packets that were generated when communicating with a DNS server for the IP addresses for www.google.com.</p>
+
+                <h4>Step 1: Filter DNS packets.</h4>
+                <p>a. In the Wireshark main window, type dns in the Filter field. Click Apply.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>Note: If you do not see any results after the DNS filter was applied, close the web browser. In the terminal window, type ping www.google.com as an alternative to the web browser.</p>
+
+                <p>b. In the packet list pane (top section) of the main window, locate the packet that includes Standard query and A www.google.com.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <h4>Step 2: Examine the fields in a DNS query packet.</h4>
+                <p>The protocol fields, highlighted in gray, are displayed in the packet details pane (middle section) of the main window.</p>
+                
+                <p>a. In the first line in the packet details pane, frame 429 had 74 bytes of data on the wire. This is the number of bytes it took to send a DNS query to a named server requesting the IP addresses of www.google.com. If you used a different web address, such as www.cisco.com, the byte count might be different.</p>
+                
+                <p>b. The Ethernet II line displays the source and destination MAC addresses. The source MAC address is from your VM because your VM originated the DNS query. The destination MAC address is from the default gateway because this is the last stop before this query exits the local network.</p>
+                
+                <p class="question">Is the source MAC address the same as the one recorded from Part 1 for the VM?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>c. In the Internet Protocol Version 4 line, the IP packet Wireshark capture indicates that the source IP address of this DNS query is 192.168.8.10 and the destination IP address is 8.8.4.4. In this example, the destination address is the DNS server.</p>
+                
+                <table class="report-info">
+                    <tr>
+                        <td width="30%"><strong>Device</strong></td>
+                        <td width="35%"><strong>IP Address</strong></td>
+                        <td width="35%"><strong>MAC Address</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Source Workstation</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Destination DNS Server/Default Gateway</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                </table>
+
+                <p>Note: The destination IP address is for the DNS Server, but the destination MAC address is for the default gateway.</p>
+                
+                <p>The IP packet and header encapsulates the UDP segment. The UDP segment contains the DNS query as the data.</p>
+                
+                <p>d. A UDP header only has four fields: source port, destination port, length, and checksum. Each field in a UDP header is only 16 bits as depicted below.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+                
+                <p>Click the arrow next to User Datagram Protocol to view the details. Notice that there are only four fields. The source port number in this example is 58029. The source port was randomly generated by the VM using port numbers that are not reserved. The destination port is 53. Port 53 is a well-known port reserved for use with DNS. DNS servers listen on port 53 for DNS queries from clients.</p>
+                
+                <p>In this example, the length of the UDP segment is 40 bytes. The length of the UDP segment in your example may be different. Out of 40 bytes, 8 bytes are used as the header. The other 32 bytes are used by DNS query data.</p>
+                
+                <p>The checksum is used to determine the integrity of the UDP header after it has traversed the internet.</p>
+                
+                <p>The UDP header has low overhead because UDP does not have fields that are associated with the three-way handshake in TCP. Any data transfer reliability issues that occur must be handled by the application layer.</p>
+                
+                <p>Expand as necessary to see the details. Record your Wireshark results in the table below:</p>
+                
+                <table class="report-info">
+                    <tr>
+                        <td width="50%"><strong>Description</strong></td>
+                        <td width="50%"><strong>Wireshark Results</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Frame size</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Source MAC address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Destination MAC address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Source IP address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Destination IP address</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Source port</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                    <tr>
+                        <td>Destination port</td>
+                        <td><div class="text-answer" contenteditable="true"></div></td>
+                    </tr>
+                </table>
+
+                <p class="question">Is the source IP address the same as the local PC's IP address you recorded in Part 1?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Is the destination IP address the same as the default gateway noted in Part 1?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h4>Step 3: Examine the fields in a DNS response packet.</h4>
+                <p>In this step, you will examine the DNS response packet and verify that the DNS response packet also uses the UDP.</p>
+                
+                <p>a. In this example, frame 488 is the corresponding DNS response packet. Notice the number of bytes on the wire is 90. It is a larger packet compared to the DNS query packet. This is because the DNS response packet will include a variety of information about the domain.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+                
+                <p class="question">b. In the Ethernet II frame for the DNS response, what device is the source MAC address and what device is the destination MAC address?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>c. Notice the source and destination IP addresses in the IP packet.</p>
+                
+                <p class="question">What is the destination IP address?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p class="question">What is the source IP address?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p class="question">What happened to the roles of source and destination for the VM and default gateway?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>d. In the UDP segment, the role of the port numbers has also reversed. The destination port number is 58029. Port number 58029 is the same port that was generated by the VM when the DNS query was sent to the DNS server. Your VM listens for a DNS response on this port.</p>
+                
+                <p>The source port number is 53. The DNS server listens for a DNS query on port 53 and then sends a DNS response with a source port number of 53 back to the originator of the DNS query.</p>
+                
+                <p>When the DNS response is expanded, notice the resolved IP addresses for www.google.com in the Answers section.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Reflection Question</h2>
+                <p class="question">What are the benefits of using UDP instead of TCP as a transport protocol for DNS?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

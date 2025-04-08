@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigating the Linux Filesystem and Permission Settings</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>                <h2>Objectives</h2>
+                <p>In this lab, you will familiarize yourself with Linux filesystems.</p>
+                <ul>
+                    <li>Part 1: Exploring Filesystems in Linux</li>
+                    <li>Part 2: File Permissions</li>
+                    <li>Part 3: Symbolic Links and other Special File Types</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation VM</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Exploring Filesystems in Linux</h3>
+                <p>The Linux filesystem is one of its most popular features. While Linux supports many different types of filesystems, this lab focuses on the <strong>ext</strong> family, one the most common filesystems found on Linux.</p>
+
+                <h4>Step 1: Access the command line.</h4>
+                <p>Launch the CyberOps Workstation VM and open a terminal window.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <h4>Step 2: Display the filesystems currently mounted.</h4>
+                <p>Filesystems must be <em>mounted</em> before they can be accessed and used. In computing, <em>mounting a filesystem</em> means to make it accessible to the operating system. Mounting a filesystem is the process of linking the physical partition on the block device (hard drive, SSD drive, pen drive, etc.) to a directory, through which the entire filesystem can be accessed. Because the aforementioned directory becomes the root of the newly mounted filesystem, it is also known as <em>mounting point.</em></p>
+
+                <p>a. Use the <strong>lsblk</strong> command to display all block devices:</p>                <pre aria-label="Terminal output showing block devices">[analyst@secOps ~]$ <strong>lsblk</strong>
+
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sda 8:0 0 10G 0 disk
+└─sda1 8:1 0 10G 0 part /
+sdb 8:16 0 1G 0 disk
+└─sdb1 8:17 0 1023M 0 part
+sr0 11:0 1 1024M 0 rom</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>The output above shows that the CyberOps Workstation VM has three block devices installed: sr0, sda and sdb. The tree-like output also shows partitions under sda and sdb. Conventionally, /dev/sdX is used by Linux to represent hard drives, with the trailing number representing the partition number inside that device. Computers with multiple hard drives would likely display more /dev/sdX devices. If Linux was running on a computer with four hard drives for example, it would show them as /dev/sda, /dev/sdb, /dev/sdc and /dev/sdd, by default. The output implies that sda and sdb are hard drives, each one containing a single partition. The output also shows that sda is a 10GB disk while sdb has 1GB.</p>
+
+                <p><strong>Note</strong>: Linux often displays USB flash drives as /dev/sdX as well, depending on their firmware type.</p>
+
+                <p>b. Use the <strong>mount</strong> command to display more detailed information on the currently mounted filesystems in the CyberOps Workstation VM.</p>
+                <pre aria-label="Terminal output showing mounted filesystems">[analyst@secOps ~]$ <strong>mount</strong>
+
+proc on /proc type proc(rw,nosuid,nodev,noexec,relatime)
+sys on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
+dev on /dev type devtmpfs (rw,nosuid,relatime,size=1030408k,nr_inodes=218258,mode=755)
+run on /run type tmpfs (rw,nosuid,nodev,relatime,mode=755)
+/dev/sda1 on / type ext4 (rw,relatime)
+securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev)
+devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,mode=755)
+&lt;output omitted&gt;</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Many of the filesystems above are out of scope of this course and irrelevant to the lab. Let's focus on the <em>root filesystem</em>, the filesystem stored in <strong>/dev/sda1</strong>. The root filesystem is where the Linux operating system itself is stored; all the programs, tools, configuration files are stored in root filesystem by default.</p>
+
+                <p>c. Run the <strong>mount</strong> command again, but this time, use the pipe | to send the output of mount to <strong>grep</strong> to filter the output and display only the root filesystem:</p>
+                <pre>[analyst@secOps ~]$ <strong>mount | grep sda1</strong>
+
+/dev/sda1 on / type ext4 (rw,relatime)</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>In the filtered output above, mount shows us that the root filesystem is located in the first partition of the sda block device (/dev/sda1). We know this is the root filesystem because of the mounting point used: "/" (the slash symbol). The output also tells us the type of formatting used in the partition, ext4 in this case. The information in between parentheses relates to the partition mounting options.</p>
+
+                <p>d. Issue the following two commands below on the <strong>CyberOps Workstation VM</strong>:</p>
+                <pre>[analyst@secOps ~]$ <strong>cd /</strong>
+[analyst@secOps /]$ <strong>ls -l</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">What is the meaning of the output? Where are the listed files physically stored?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Why is <strong>/dev/sdb1</strong> not shown in the output above?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h3>Step 3: Manually mounting and unmounting filesystems</h3>
+                <p>The <strong>mount</strong> command can also be used to mount and unmount filesystems. As seen in Step 1, the CyberOps Workstation VM has two hard drives installed. The first one was recognized by the kernel as /dev/sda while the second was recognized as /dev/sdb. Before a block device can be mounted, it must have a mounting point.</p>
+
+                <p>a. Use the <strong>ls -l</strong> command to verify that the directory <strong>second_drive</strong> is in the analyst's home directory.</p>
+                <pre>[analyst@secOps /]$ <strong>cd ~</strong>
+[analyst@secOps ~]$ <strong>ls -l</strong>
+
+total 28
+drwxr-xr-x 2 analyst analyst 4096 Sep 26 2014 Desktop
+drwx------ 3 analyst analyst 4096 Jul 14 11:28 Downloads
+drwxr-xr-x 9 analyst analyst 4096 Jul 25 16:27 lab.support.files
+drwxr-xr-x 2 analyst analyst 4096 Mar 3 15:56 second_drive
+-rw-r--r-- 1 analyst analyst 142 Aug 16 15:11 some_text_file.txt
+-rw-r--r-- 1 analyst analyst 254 Aug 16 13:38 space.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p><strong>Note</strong>: If the directory <strong>second_drive</strong> does not exist, use the <strong>mkdir second_drive</strong> command to create it.</p>
+                <pre>[analyst@secOps ~]$ <strong>mkdir second_drive</strong></pre>
+
+                <p><strong>Note</strong>: Depending on the state of your VM, your listing will most likely have different files and directories.</p>
+
+                <p>b. Use <strong>ls -l</strong> again to list the contents of the newly created second_drive directory.</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -l second_drive/</strong>
+
+total 0</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Notice that the directory is empty.</p>
+
+                <p>c. Use the <strong>mount</strong> command to mount <strong>/dev/sdb1</strong> on the newly created <strong>second_drive</strong> directory. The syntax of mount is: <strong>mount [options] &lt;device to be mounted&gt; &lt;mounting point&gt;</strong>.</p>
+                <pre>[analyst@secOps ~]$ <strong>sudo mount /dev/sdb1 ~/second_drive/</strong>
+
+[sudo] password for analyst:</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>No output is provided which means the mounting process was successful.</p>
+
+                <p>d. Now that the <strong>/dev/sdb1</strong> has been mounted on <strong>/home/analyst/second_drive</strong>, use <strong>ls -l</strong> to list the contents of the directory again.</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -l second_drive/</strong>
+
+total 20
+drwx------ 2 root root 16384 Mar 3 10:59 lost+found
+-rw-r--r-- 1 root root 183 Mar 3 15:42 myFile.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Question:</h4>
+                <p class="question">Why is the directory no longer empty? Where are the listed files physically stored?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>e. Issue the <strong>mount</strong> command with no options again to display detailed information about the <strong>/dev/sdb1</strong> partition. As before, use the <strong>grep</strong> command to display only the <strong>/dev/sdX</strong> filesystems:</p>
+                <pre>[analyst@secOps ~]$ <strong>mount | grep /dev/sd</strong>
+
+/dev/sda1 on / type ext4 (rw,relatime)
+/dev/sdb1 on /home/analyst/second_drive type ext4 (rw,relatime)</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>f. Unmounting filesystems is just as simple. Make sure you change the directory to something outside of the mounting point and use the <strong>umount</strong> command, as shown below:</p>
+                <pre>[analyst@secOps ~]$ <strong>sudo umount /dev/sdb1</strong>
+
+[sudo] password for analyst:
+[analyst@secOps ~]$ <strong>ls -l second_drive/</strong>
+
+total 0</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h3>Part 2: File Permissions</h3>
+                <p>Linux filesystems have built-in features to control the ability of the users to view, change, navigate, and execute the contents of the filesystem. Essentially, each file in filesystems carries its own set of permissions, always carrying a set of definitions about what users and groups can do with the file.</p>
+
+                <h4>Step 1: Visualize and Change the File Permissions.</h4>
+                <p>a. Navigate to /home/analyst/lab.support.files/scripts/.</p>
+                <pre>[analyst@secOps ~]$ <strong>cd lab.support.files/scripts/</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>b. Use the <strong>ls -l</strong> command to display file permissions.</p>
+                <pre>[analyst@secOps scripts]$ <strong>ls -l</strong>
+
+total 60
+-rwxr-xr-x 1 analyst analyst 190 Jun 13 09:45 configure_as_dhcp.sh
+-rwxr-xr-x 1 analyst analyst 192 Jun 13 09:45 configure_as_static.sh
+-rwxr-xr-x 1 analyst analyst 3459 Jul 18 10:09 cyberops_extended_topo_no_fw.py
+-rwxr-xr-x 1 analyst analyst 4062 Jul 18 10:09 cyberops_extended_topo.py
+-rwxr-xr-x 1 analyst analyst 3669 Jul 18 10:10 cyberops_topo.py
+-rw-r--r-- 1 analyst analyst 2871 Apr 28 11:27 cyops.mn
+-rwxr-xr-x 1 analyst analyst 458 May 1 13:50 fw_rules
+-rwxr-xr-x 1 analyst analyst 70 Apr 28 11:27 mal_server_start.sh
+drwxr-xr-x 2 analyst analyst 4096 Jun 13 09:55 net_configuration_files
+-rwxr-xr-x 1 analyst analyst 65 Apr 28 11:27 reg_server_start.sh
+-rwxr-xr-x 1 analyst analyst 189 Dec 15 2016 start_ELK.sh
+-rwxr-xr-x 1 analyst analyst 85 Dec 22 2016 start_miniedit.sh
+-rwxr-xr-x 1 analyst analyst 76 Jun 22 11:38 start_pox.sh
+-rwxr-xr-x 1 analyst analyst 106 Jun 27 09:47 start_snort.sh
+-rwxr-xr-x 1 analyst analyst 61 May 4 11:45 start_tftpd.sh</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">Consider the <strong>cyops.mn</strong> file as an example. Who is the owner of the file? How about the group?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">The permissions for <strong>cyops.mn</strong> are <strong>-rw-r--r--</strong>. What does that mean?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>c. The <strong>touch</strong> command is very simple and useful. It allows for the quick creation of an empty text file. Use the command below to create an empty file in the <strong>/mnt</strong> directory:</p>
+                <pre>[analyst@secOps scripts]$ <strong>touch /mnt/myNewFile.txt</strong>
+
+touch: cannot touch '/mnt/myNewFile.txt': Permission denied</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">Why was the file not created? List the permissions, ownership and content of the <strong>/mnt</strong> directory and explain what happened. With the addition of <strong>-d</strong> option, it lists the permission of the parent directory. Record the answer in the lines below.</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -ld /mnt</strong>
+
+drwxr-xr-x 2 root root 4096 Jan 5 2018 /mnt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What can be done for the <strong>touch</strong> command shown above to be successful?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>d. The <strong>chmod</strong> command is used to change the permissions of a file or directory. As before, mount the <strong>/dev/sdb1</strong> partition on the <strong>/home/analyst/second_drive</strong> directory created earlier in this lab:</p>
+                <pre>[analyst@secOps ~]$ <strong>sudo mount /dev/sdb1 ~/second_drive/</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>e. Change to the <strong>second_drive</strong> directory and list the contents of it:</p>
+                <pre>[analyst@secOps ~]$ <strong>cd ~/second_drive</strong>
+[analyst@secOps second_drive]$ <strong>ls -l</strong>
+
+total 20
+drwx------ 2 root root 16384 Mar 3 10:59 lost+found
+-rw-r--r-- 1 root root 183 Mar 3 15:42 myFile.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Question:</h4>
+                <p class="question">What are the permissions of the <strong>myFile.txt</strong> file?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>f. Use the <strong>chmod</strong> command to change the permissions of <strong>myFile.txt</strong>.</p>
+                <pre>[analyst@secOps second_drive]$ <strong>sudo chmod 665 myFile.txt</strong>
+[analyst@secOps second_drive]$ <strong>ls -l</strong>
+
+total 20
+drwx------ 2 root root 16384 Mar 3 10:59 lost+found
+-rw-rw-r-x 1 root root 183 Mar 3 15:42 myFile.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Question:</h4>
+                <p class="question">Did the permissions change? What are the permissions of <strong>myFile.txt</strong>?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>The <strong>chmod</strong> command takes permissions in the octal format. In that way, a breakdown of the 665 is as follows:</p>
+                <p>6 in octal is 110 in binary. Assuming each position of the permissions of a file can be 1 or 0, 110 means rw- (read=1, write=1 and execute=0).</p>
+                <p>Therefore, the <strong>chmod 665 myFile.txt</strong> command changes the permissions to:</p>
+                <p><strong>Owner</strong>: rw- (6 in octal or 110 in binary)</p>
+                <p><strong>Group</strong>: rw- (6 in octal or 110 in binary)</p>
+                <p><strong>Other</strong>: r-x (5 in octal or 101 in binary)</p>
+
+                <h4>Question:</h4>
+                <p class="question">What command would change the permissions of myFile.txt to rwxrwxrwx, granting any user in the system full access to the file?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>g. The <strong>chown</strong> command is used to change ownership of a file or directory. Issue the command below to make root the owner of the <strong>myFile.txt</strong>:</p>
+                <pre>[analyst@secOps second_drive]$ <strong>sudo chown analyst myFile.txt</strong>
+
+[sudo] password for analyst:
+[analyst@secOps second_drive]$ <strong>ls -l</strong>
+
+total 20
+drwx------ 2 root root 16384 Mar 3 10:59 lost+found
+-rw-rw-r-x 1 analyst root 183 Mar 3 15:42 myFile.txt
+[analyst@secOps second_drive]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p><strong>Note</strong>: To change both the owner and the group to <strong>analyst</strong> at the same time, use the <strong>sudo chown analyst:analyst myFile.txt</strong> format.</p>
+
+                <p>h. Now that analyst is the file owner, try appending the word 'test' to the end of <strong>myFile.txt</strong>.</p>
+                <pre>[analyst@secOps second_drive]$ <strong>echo test >> myFile.txt</strong>
+[sudo] password for analyst:
+[analyst@secOps second_drive]$ <strong>cat myFile.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Question:</h4>
+                <p class="question">Was the operation successful? Explain.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h4>Step 2: Directory and Permissions</h4>
+                <p>Similar to regular files, directories also carry permissions. Both files and directories have 9 bits for the permissions of the owner/user, the group, and others. There are also three more bits for special permissions: setuid, setgid, and sticky which is beyond the scope of this lab.</p>
+
+                <p>a. Change back to the /home/analyst/lab.support.files directory and issue the <strong>ls -l</strong> command to list all the files with details:</p>
+                <pre>[analyst@secOps second_drive]$ <strong>cd ~/lab.support.files/</strong>
+[analyst@secOps lab.support.files]$ <strong>ls -l</strong>
+
+total 580
+-rw-r--r-- 1 analyst analyst 649 Jun 28 18:34 apache_in_epoch.log
+-rw-r--r-- 1 analyst analyst 126 Jun 28 11:13 applicationX_in_epoch.log
+drwxr-xr-x 4 analyst analyst 4096 Aug 7 15:29 attack_scripts
+-rw-r--r-- 1 analyst analyst 102 Jul 20 09:37 confidential.txt
+-rw-r--r-- 1 analyst analyst 2871 Dec 15 2016 cyops.mn
+-rw-r--r-- 1 analyst analyst 75 May 24 11:07 elk_services
+-rw-r--r-- 1 analyst analyst 373 Feb 16 16:04 h2_dropbear.banner
+-rw-r--r-- 1 analyst analyst 147 Mar 21 15:30 index.html
+-rw-r--r-- 1 analyst analyst 255 May 2 13:11 letter_to_grandma.txt
+-rw-r--r-- 1 analyst analyst 24464 Feb 7 2017 logstash-tutorial.log
+drwxr-xr-x 2 analyst analyst 4096 May 25 13:01 malware
+-rwxr-xr-x 1 analyst analyst 172 Jul 25 16:27 mininet_services
+drwxr-xr-x 2 analyst analyst 4096 Feb 14 2017 openssl_lab
+drwxr-xr-x 2 analyst analyst 4096 Aug 7 15:25 pcaps
+drwxr-xr-x 7 analyst analyst 4096 Sep 20 2016 pox
+-rw-r--r-- 1 analyst analyst 473363 Feb 16 15:32 sample.img
+-rw-r--r-- 1 analyst analyst 65 Feb 16 15:45 sample.img_SHA256.sig
+drwxr-xr-x 3 analyst analyst 4096 Jul 18 10:10 scripts
+-rw-r--r-- 1 analyst analyst 25553 Feb 13 2017 SQL_Lab.pcap</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Question:</h4>
+                <p class="question">Compare the permissions of the <strong>malware</strong> directory with the <strong>mininet_services</strong> file. What is the difference between beginning part of the malware line and the mininet_services line?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>The letter 'd' at the beginning of the line indicates that the file type is a directory and not a file. Another difference between file and directory permissions is the execution bit. If a file has its execution bit turned on, it means it can be executed by the system. Directories are different than files with the execution bit set (a file with the execution bit set is an executable script or program). A directory with the execution bit set specifies whether a user can enter that directory.</p>
+
+                <p>The <strong>chmod</strong> and <strong>chown</strong> commands work for directories in the same way they work for files.</p>
+
+                <h3>Part 3: Symbolic Links and other Special File Types</h3>
+                <p>You have now seen some of the different file types in Linux. The first character in each file listed with the <strong>ls -l</strong> command shows the file type. The three different types of files in Linux including their sub-types and characters are:</p>
+
+                <ul>
+                    <li><strong>Regular files (-)</strong> including:
+                        <ol>
+                            <li>Readable files -- text files</li>
+                            <li>Binary files - programs</li>
+                            <li>Image files</li>
+                            <li>Compressed files</li>
+                        </ol>
+                    </li>
+                    <li><strong>Directory files (d)</strong>
+                        <ol>
+                            <li>Folders</li>
+                        </ol>
+                    </li>
+                    <li><strong>Special Files</strong> including:
+                        <ol>
+                            <li><strong>Block files (b)</strong> -- Files used to access physical hardware like mount points to access hard drives.</li>
+                            <li><strong>Character device files (c)</strong> -- Files that provide a serial stream of input and output. tty terminals are examples of this type of file.</li>
+                            <li><strong>Pipe files (p)</strong> -- A file used to pass information where the first bytes in are the first bytes out. This is also known as FIFO (first in first out).</li>
+                            <li><strong>Symbolic Link files (l)</strong> -- Files used to link to other files or directories. There are two types: symbolic links and hard links.</li>
+                            <li><strong>Socket files (s)</strong> -- These are used to pass information from application to application in order to communicate over a network.</li>
+                        </ol>
+                    </li>
+                </ul>
+
+                <h4>Step 1: Examine file types.</h4>
+                <p>a. Use the <strong>ls -l</strong> command to display the files in the /home/analyst folder. Notice the first characters of each line are either a "--" indicating a file or a "d" indicating a directory.</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -l</strong>
+
+total 28
+drwxr-xr-x 3 analyst analyst 4096 Aug 16 15:15 cyops_folder2
+drwxr-xr-x 2 analyst analyst 4096 Sep 26 2014 Desktop
+drwx------ 3 analyst analyst 4096 Jul 14 11:28 Downloads
+drwxr-xr-x 9 analyst analyst 4096 Jul 25 16:27 lab.support.files
+drwxr-xr-x 3 analyst analyst 4096 Mar 3 18:23 second_drive
+-rw-r--r-- 1 analyst analyst 142 Aug 16 15:11 some_text_file.txt
+-rw-r--r-- 1 analyst analyst 254 Aug 16 13:38 space.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>b. Produce a listing of the <strong>/dev</strong> directory. Scroll to the middle of the output and notice how the block files begin with a "b", the character device files begin with a "c" and the symbolic link files begin with an "l":</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -l /dev/</strong>
+
+&lt;output omitted&gt;
+crw-rw-rw- 1 root tty 5, 2 May 29 18:32 ptmx
+drwxr-xr-x 2 root root 0 May 23 06:40 pts
+crw-rw-rw- 1 root root 1, 8 May 23 06:41 random
+crw-rw-r-- 1 root root 10, 56 May 23 06:41 rfkill
+lrwxrwxrwx 1 root root 4 May 23 06:41 rtc → rtc0
+crw-rw---- 1 root audio 253, 0 May 23 06:41 rtc0
+brw-rw---- 1 root disk 8, 0 May 23 06:41 sda
+brw-rw---- 1 root disk 8, 1 May 23 06:41 sda1
+brw-rw---- 1 root disk 8, 16 May 23 06:41 sdb
+brw-rw---- 1 root disk 8, 17 May 23 06:41 sdb1
+drwxrwxrwt 2 root root 40 May 28 13:47 shm
+crw------- 1 root root 10, 231 May 23 06:41 snapshot
+drwxr-xr-x 2 root root 80 May 23 06:41 snd
+brw-rw----+ 1 root optical 11, 0 May 23 06:41 sr0
+lrwxrwxrwx 1 root root 15 May 23 06:40 stderr → /proc/self/fd/2
+lrwxrwxrwx 1 root root 15 May 23 06:40 stdin → /proc/self/fd/0
+lrwxrwxrwx 1 root root 15 May 23 06:40 stdout → /proc/self/fd/1
+crw-rw-rw- 1 root tty 5, 0 May 29 17:36 tty
+crw--w---- 1 root tty 4, 0 May 23 06:41 tty0
+&lt;output omitted&gt;</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>c. Symbolic links in Linux are like shortcuts in Windows. There are two types of links in Linux: symbolic links and hard links. The difference between symbolic links and a hard links is that a symbolic link file points to the filename of another file and a hard link file points to the contents of another file. Create two files by using echo:</p>
+                <pre>[analyst@secOps ~]$ <strong>echo "symbolic" > file1.txt</strong>
+[analyst@secOps ~]$ <strong>cat file1.txt</strong>
+
+symbolic
+[analyst@secOps ~]$ <strong>echo "hard" > file2.txt</strong>
+[analyst@secOps ~]$ <strong>cat file2.txt</strong>
+
+hard</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>d. Use <strong>ln --s</strong> to create a symbolic link to file1.txt, and <strong>ln</strong> to create a hard link to file2.txt:</p>
+                <pre>[analyst@secOps ~]$ <strong>ln --s file1.txt file1symbolic</strong>
+[analyst@secOps ~]$ <strong>ln file2.txt file2hard</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>e. Use the ls --l command and examine the directory listing:</p>
+                <pre>[analyst@secOps ~]$ <strong>ls -l</strong>
+
+total 40
+drwxr-xr-x 3 analyst analyst 4096 Aug 16 15:15 cyops_folder2
+drwxr-xr-x 2 analyst analyst 4096 Sep 26 2014 Desktop
+drwx------ 3 analyst analyst 4096 Jul 14 11:28 Downloads
+lrwxrwxrwx 1 analyst analyst 9 Aug 17 16:43 file1symbolic -> file1.txt
+-rw-r--r-- 1 analyst analyst 9 Aug 17 16:41 file1.txt
+-rw-r--r-- 2 analyst analyst 5 Aug 17 16:42 file2hard
+-rw-r--r-- 2 analyst analyst 5 Aug 17 16:42 file2.txt
+drwxr-xr-x 9 analyst analyst 4096 Jul 25 16:27 lab.support.files
+drwxr-xr-x 3 analyst analyst 4096 Mar 3 18:23 second_drive
+-rw-r--r-- 1 analyst analyst 142 Aug 16 15:11 some_text_file.txt
+-rw-r--r-- 1 analyst analyst 254 Aug 16 13:38 space.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Notice how the file <strong>file1symbolic</strong> is a symbolic link with an <strong>l</strong> at the beginning of the line and a pointer -> to <strong>file1.txt</strong>. The <strong>file2hard</strong> appears to be a regular file, because in fact it is a regular file that happens to point to the same inode on the hard disk drive as <strong>file2.txt</strong>. In other words, <strong>file2hard</strong> points to the same attributes and disk block location as <strong>file2.txt</strong>. The number 2 in the fifth column of the listing for <strong>file2hard</strong> and <strong>file2.txt</strong> indicates that there are 2 files hard linked to the same inode. For a directory listing the fifth column indicates the number of directories within the directory including hidden folders.</p>
+
+                <p>f. Change the names of the original files: file1.txt and file2.txt, and notice how it effects the linked files.</p>
+                <pre>[analyst@secOps ~]$ <strong>mv file1.txt file1new.txt</strong>
+[analyst@secOps ~]$ <strong>mv file2.txt file2new.txt</strong>
+
+[analyst@secOps ~]$ <strong>cat file1symbolic</strong>
+cat: file1symbolic: no such file or directory
+
+[analyst@secOps ~]$ <strong>cat file2hard</strong>
+hard</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Notice how <strong>file1symbolic</strong> is now a broken symbolic link because the name of the file that it pointed to <strong>file1.txt</strong> has changed, but the hard link file <strong>file2hard</strong> still works correctly because it points to the inode of <strong>file2.txt</strong> and not its name, which is now <strong>file2new.txt</strong>.</p>
+
+                <h4>Question:</h4>
+                <p class="question">What do you think would happen to <strong>file2hard</strong> if you opened a text editor and changed the text in <strong>file2new.txt</strong>?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h2>Reflection</h2>
+                <p>File permissions and ownership are two of the most important aspects of Linux. They are also a common cause of problems. A file that has the wrong permissions or ownership set will not be available to the programs that need to access it. In this scenario, the program will usually break and errors will be encountered.</p>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

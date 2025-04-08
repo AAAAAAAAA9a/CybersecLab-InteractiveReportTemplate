@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Wireshark to Examine HTTP and HTTPS Traffic</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Capture and view HTTP traffic</p>
+                <p>Part 2: Capture and view HTTPS traffic</p>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>HyperText Transfer Protocol (HTTP) is an application layer protocol that presents data via a web browser. With HTTP, there is no safeguard for the exchanged data between two communicating devices.</p>
+                <p>With HTTPS, encryption is used via a mathematical algorithm. This algorithm hides the true meaning of the data that is being exchanged. This is done through the use of certificates that can be viewed later in this lab.</p>
+                <p>Regardless of HTTP or HTTPS, it is only recommended to exchange data with websites that you trust. Just because a site uses HTTPS does not mean it is a trustworthy site. Threat actors commonly use HTTPS to hide their activities.</p>
+                <p>In this lab, you will explore and capture HTTP and HTTPS traffic using Wireshark.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation VM</li>
+                    <li>Internet connection</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Capture and View HTTP Traffic</h3>
+                <p>In this part, you will use tcpdump to capture the content of HTTP traffic. You will use command options to save the traffic to a packet capture (pcap) file. These records can then be analyzed using different applications that read pcap files, including Wireshark.</p>
+
+                <h4>Step 1: Start the virtual machine and log in.</h4>
+                <p>Start the CyberOps Workstation VM. Use the following user credentials:</p>
+                <p><strong>Username:</strong> analyst<br>
+                <strong>Password:</strong> cyberops</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <h4>Step 2: Open a terminal and start tcpdump.</h4>
+                <p>a. Open a terminal application and enter the command ip address.</p>
+                <pre>[analyst@secOps ~]$ ip address</pre>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. List the interfaces and their IP addresses displayed in the ip address output.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>c. While in the terminal application, enter the command sudo tcpdump –i enp0s3 –s 0 –w httpdump.pcap. Enter the password cyberops for the user analyst when prompted.</p>
+                <pre>[analyst@secOps ~]$ sudo tcpdump –i enp0s3 –s 0 –w httpdump.pcap
+    [sudo] password for analyst: 
+    tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes</pre>
+
+                <p>This command starts tcpdump and records network traffic on the enp0s3 interface.</p>
+                <p>The -i command option allows you to specify the interface. If not specified, the tcpdump will capture all traffic on all interfaces.</p>
+                <p>The -s command option specifies the length of the snapshot for each packet. You should limit snaplen to the smallest number that will capture the protocol information in which you are interested. Setting snaplen to 0 sets it to the default of 262144, for backwards compatibility with recent older versions of tcpdump.</p>
+                <p>The -w command option is used to write the result of the tcpdump command to a file. Adding the extension .pcap ensures that operating systems and applications will be able to read to file. All recorded traffic will be printed to the file httpdump.pcap in the home directory of the user analyst.</p>
+                <p>Use the man pages for tcpdump to determine the usage of the -s and -w command options.</p>
+
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. Open a web browser from the launch bar within the CyberOps Workstation VM. Navigate to http://www.altoromutual.com/login.jsp</p>
+                <p>Because this website uses HTTP, the traffic is not encrypted. Click the Password field to see the warning pop up.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>e. Enter a username of Admin with a password of Admin and click Login.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>f. Close the web browser.</p>
+                <p>g. Return to the terminal window where tcpdump is running. Enter CTRL+C to stop the packet capture.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <h4>Step 3: View the HTTP capture.</h4>
+                <p>The tcpdump, executed in the previous step, printed the output to a file named httpdump.pcap. This file is located in the home directory for the user analyst.</p>
+                <p>a. Click the File Manager icon on the desktop and browse to the home folder for the user analyst. Double-click the httpdump.pcap file, in the Open With dialog box scroll down to Wireshark and then click Open.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. In the Wireshark application, filter for http and click Apply.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>c. Browse through the different HTTP messages and select the POST message.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. In the lower window, the message is displayed. Expand the HTML Form URL Encoded: application/x-www-form-urlencoded section.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p class="question">What two pieces of information are displayed?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>e. Close the Wireshark application.</p>
+            </section>
+
+            <section>
+                <h3>Part 2: Capture and View HTTPS Traffic</h3>
+                <p>You will now use tcpdump from the command line of a Linux workstation to capture HTTPS traffic. After starting tcpdump, you will generate HTTPS traffic while tcpdump records the contents of the network traffic. These records will again be analyzed using Wireshark.</p>
+
+                <h4>Step 1: Start tcpdump within a terminal.</h4>
+                <p>a. While in the terminal application, enter the command sudo tcpdump –i enp0s3 –s 0 –w httpsdump.pcap. Enter the password cyberops for the user analyst when prompted.</p>
+                <pre>[analyst@secOps ~]$ sudo tcpdump –i enp0s3 –s 0 –w httpsdump.pcap
+    [sudo] password for analyst: 
+    tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes</pre>
+
+                <p>This command will start tcpdump and record network traffic on the enp0s3 interface of the Linux workstation. If your interface is different than enp0s3, please modify it when using the above command.</p>
+                <p>All recorded traffic will be printed to the file httpsdump.pcap in the home directory of the user analyst.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. Open a web browser from the launch bar within the CyberOps Workstation VM. Navigate to www.netacad.com.</p>
+                
+                <p><strong>Note:</strong> If you receive a "Secure Connection Failed" webpage it probably means the date and time are incorrect. Update the day and time with the following command, changing to the current day and time:</p>
+                <pre>[analyst@secOps ~]$ sudo date -s "12 MAY 2020 21:38:20"</pre>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p class="question">What do you notice about the website URL?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>c. Click Log in.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. Enter in your NetAcad username and password. Click Next.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>e. Close the web browser in the VM.</p>
+                <p>f. Return to the terminal window where tcpdump is running. Enter CTRL+C to stop the packet capture.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <h4>Step 2: View the HTTPS capture.</h4>
+                <p>The tcpdump executed in Step 1 printed the output to a file named httpsdump.pcap. This file is located in the home directory for the user analyst.</p>
+                <p>a. Click the Filesystem icon on the desktop and browse to the home folder for the user analyst. Open the httpsdump.pcap file.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>b. In the Wireshark application, expand the capture window vertically and then filter by HTTPS traffic via port 443.</p>
+                <p>Enter tcp.port==443 as a filter, and click Apply.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>c. Browse through the different HTTPS messages and select an Application Data message.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>d. In the lower window, the message is displayed.</p>
+                
+                <p class="question">What has replaced the HTTP section that was in the previous capture file?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>e. Completely expand the Secure Sockets Layer section.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p>f. Click the Encrypted Application Data.</p>
+                
+                <div class="screenshot-container">
+                    <div class="screenshot-upload"></div>
+                </div>
+
+                <p class="question">Is the application data in a plaintext or readable format?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>g. Close all windows and shut down the virtual machine.</p>
+            </section>
+
+            <section>
+                <h2>Reflection Questions</h2>
+                <p class="question">1. What are the advantages of using HTTPS instead of HTTP?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">2. Are all websites that use HTTPS considered trustworthy?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>
