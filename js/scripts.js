@@ -1,6 +1,16 @@
+function getComponentPath(componentName) {
+    // Get current path depth to adjust relative path
+    const path = window.location.pathname;
+    const depth = path.split('/').length - 2; // -2: one for file, one for leading slash
+    let prefix = '';
+    for (let i = 0; i < depth; i++) {
+        prefix += '../';
+    }
+    return `${prefix}components/${componentName}.html`;
+}
 
 function loadComponent(componentName, targetSelector) {
-  fetch(`/components/${componentName}.html`)
+  fetch(getComponentPath(componentName))
       .then(response => response.text())
       .then(html => {
           document.querySelectorAll(targetSelector).forEach(el => {
