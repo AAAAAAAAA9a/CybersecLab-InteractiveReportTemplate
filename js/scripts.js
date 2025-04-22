@@ -1,12 +1,26 @@
 function getComponentPath(componentName) {
-    // Get current path depth to adjust relative path
-    const path = window.location.pathname;
-    const depth = path.split('/').length - 2; // -2: one for file, one for leading slash
-    let prefix = '';
-    for (let i = 0; i < depth; i++) {
-        prefix += '../';
+    const repoName = location.pathname.split('/')[1];
+    let basePath = '';
+    
+    // If not on local development
+    if (location.hostname !== 'localhost' && repoName && repoName !== '') {
+        const pathParts = location.pathname.split('/');
+        pathParts.splice(0, 2); // Remove empty string and repo name
+        const depth = pathParts.length;
+        
+        for (let i = 0; i < depth; i++) {
+            basePath += '../';
+        }
+    } else {
+        // Local development path calculation
+        const path = window.location.pathname;
+        const depth = path.split('/').length - 2;
+        for (let i = 0; i < depth; i++) {
+            basePath += '../';
+        }
     }
-    return `${prefix}components/${componentName}.html`;
+    
+    return `${basePath}components/${componentName}.html`;
 }
 
 function loadComponent(componentName, targetSelector) {

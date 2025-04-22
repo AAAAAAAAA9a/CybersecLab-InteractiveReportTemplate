@@ -1,4 +1,4 @@
-@import url('base.css');
-@import url('components.css');
-@import url('dark-mode.css');
-@import url('print.css');
+@import url('./base.css');
+@import url('./components.css');
+@import url('./dark-mode.css');
+@import url('./print.css');
