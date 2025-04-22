@@ -1,26 +1,6 @@
 function getComponentPath(componentName) {
-    const repoName = location.pathname.split('/')[1];
-    let basePath = '';
-    
-    // If not on local development
-    if (location.hostname !== 'localhost' && repoName && repoName !== '') {
-        const pathParts = location.pathname.split('/');
-        pathParts.splice(0, 2); // Remove empty string and repo name
-        const depth = pathParts.length;
-        
-        for (let i = 0; i < depth; i++) {
-            basePath += '../';
-        }
-    } else {
-        // Local development path calculation
-        const path = window.location.pathname;
-        const depth = path.split('/').length - 2;
-        for (let i = 0; i < depth; i++) {
-            basePath += '../';
-        }
-    }
-    
-    return `${basePath}components/${componentName}.html`;
+    // Always go up one directory to components for lab files
+    return "../components/" + componentName + ".html";
 }
 
 function loadComponent(componentName, targetSelector) {
