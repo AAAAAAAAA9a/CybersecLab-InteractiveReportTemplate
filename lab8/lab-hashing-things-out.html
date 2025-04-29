@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashing Things Out</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <div class="report-header" role="banner"></div>
+
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Hashing a Text File with OpenSSL</p>
+                <p>Part 2: Verifying Hashes</p>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>Hash functions are mathematical algorithms designed to take data as input and generate a fixed-size, unique string of characters, also known as the hash. Designed to be fast, hash functions are very hard to reverse; it is very hard to recover the data that created any given hash, based on the hash alone. Another important property of hash function is that even the smallest change done to the input data yields a completely different hash.</p>
+                
+                <p>While OpenSSL can be used to generate and compare hashes, other tools are available. Some of these tools are also included in this lab.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation virtual machine</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Hashing a Text File with OpenSSL</h3>
+                <p>OpenSSL can be used as a standalone tool for hashing. To create a hash of a text file, follow the steps below:</p>
+
+                <p>a. In the CyberOps Workstation virtual machine, open a terminal window.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>b. Because the text file to hash is in the /home/analyst/lab.support.files/ directory, change to that directory:</p>
+                <pre>[analyst@secOps ~]$ <strong>cd /home/analyst/lab.support.files/</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>c. Type the command below to list the contents of the letter_to_grandma.txt text file on the screen:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat letter_to_grandma.txt</strong>
+
+Hi Grandma,
+
+I am writing this letter to thank you for the chocolate chip cookies you sent me. I got them this morning and I have already eaten half of the box! They are absolutely delicious!
+
+I wish you all the best. Love,
+
+Your cookie-eater grandchild.</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>d. From the terminal window, issue the command below to hash the text file. The command will use SHA-2-256 as the hashing algorithm to generate a hash of the text file. The hash will be displayed on the screen after OpenSSL has computed it.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl sha256 letter_to_grandma.txt</strong>
+
+SHA256(letter_to_grandma.txt)= deff9c9bbece44866796ff6cf21f2612fbb77aa1b2515a900bafb29be118080b</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Notice the format of the output. OpenSSL displays the hashing algorithm used, SHA-256, followed by the name of file used as input data. The SHA-256 hash itself is displayed after the equal ('=') sign.</p>
+
+                <p>e. Hash functions are useful for verifying the integrity of the data regardless of whether it is an image, a song, or a simple text file. The smallest change results in a completely different hash. Hashes can be calculated before and after transmission, and then compared. If the hashes do not match, then data was modified during transmission.</p>
+                
+                <p>Let's modify the letter_to_grandma.txt text file and recalculate the MD5 hash. Issue the command below to open <strong>nano,</strong> a command-line text editor.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>nano letter_to_grandma.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>Using <strong>nano</strong>, change the first sentence from <strong>'Hi Grandma'</strong> to <strong>'Hi Grandpa'</strong>. Notice we are changing only one character, <strong>'m'</strong> to <strong>'p'</strong>. After the change has been made, press the <strong>&lt;CONTROL+X&gt;</strong> keys to save the modified file. Press <strong>'Y'</strong> to confirm the name and save the file. Press the <strong>&lt;Enter&gt;</strong> key and you will exit out of nano to continue onto the next step.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>f. Now that the file has been modified and saved, run the same command again to generate a SHA-2-256 hash of the file.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl sha256 letter_to_grandma.txt</strong>
+
+SHA256(letter_to_grandma.txt)= 43302c4500b7c4b8e574ba27a59d83267812493c029fd054c9242f3ac73100bc</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Is the new hash different that hash calculated in item (d)? How different?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>g. A hashing algorithm with longer bit-length, such as SHA-2-512, can also be used. To generate a SHA-2-512 hash of the letter_to_grandma.txt file, use the command below:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl sha512 letter_to_grandma.txt</strong>
+
+SHA512(letter_to_grandma.txt)= 7c35db79a06aa30ae0f6de33f2322fd419560ee9af9cedeb6e251f2f1c4e99e0bbe5d2fc32ce501468891150e3be7e288e3e568450812980c9f8288e3103a1d3
+
+[analyst@secOps lab.support.files]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>h. Use <strong>sha256sum</strong> and <strong>sha512sum</strong> to generateSHA-2-256 and SHA-2-512 hash of the letter_to_grandma.txt file:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>sha256sum letter_to_grandma.txt</strong>
+
+43302c4500b7c4b8e574ba27a59d83267812493c029fd054c9242f3ac73100bc letter_to_grandma.txt
+
+[analyst@secOps lab.support.files]$ <strong>sha512sum letter_to_grandma.txt</strong>
+
+7c35db79a06aa30ae0f6de33f2322fd419560ee9af9cedeb6e251f2f1c4e99e0bbe5d2fc32ce501468891150e3be7e288e3e568450812980c9f8288e3103a1d3 letter_to_grandma.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Do the hashes generated with <strong>sha256sum</strong> and <strong>sha512sum</strong> match the hashes generated in items (f) and (g), respectively? Explain.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <div class="text-answer" style="background-color: #f0f0f0; border-left: 4px solid #ccc; padding: 10px; margin: 15px 0;">
+                    <p><strong>Note</strong>: SHA-2 is the recommended standard for hashing. While SHA-2 has not yet been effectively compromised, computers are becoming more and more powerful. It is expected that this natural evolution will soon make it possible for attackers to break SHA-2.</p>
+                    <p>SHA-3 is the newest hashing algorithm and eventually be the replacement for SHA-2 family of hashes.</p>
+                </div>
+
+                <p><strong>Note</strong>: The CyberOPS Workstation VM only includes support for SHA-2-224, SHA-2-256, and SHA-2-512 (<strong>sha224sum</strong>, <strong>sha256sum</strong>, and <strong>sha512sum</strong>, respectively).</p>
+
+                <h3>Part 2: Verifying Hashes</h3>
+                <p>As mentioned before, a common use for hashes is to verify file integrity. Follow the steps below to use SHA-2-256 hashes to verify the integrity of sample.img, a file downloaded from the Internet.</p>
+
+                <p>i. Along with sample.img, sample.img_SHA256.sig was also downloaded. sample.img_SHA256.sig is a file containing the SHA-2-256 hash that wascomputed by the website. First, use the cat command to display the contents of the sample.img_SHA256.sig file:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat sample.img_SHA256.sig</strong>
+
+c56c4724c26eb0157963c0d62b76422116be31804a39c82fd44ddf0ca5013e6a</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>j. Use SHA256sum to calculate the SHA-2-256 hash of the sample.img file:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>sha256sum sample.img</strong>
+
+c56c4724c26eb0157963c0d62b76422116be31804a39c82fd44ddf0ca5013e6a sample.img</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Was the sample.img downloaded without errors? Explain.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p><strong>Note</strong>: While comparing hashes is a relatively robust method to detect transmission errors, there are better ways to ensure the file has not been tampered with. Tools, such as <strong>gpg</strong>, provide a much better method for ensuring the downloaded file has not been modified by third parties and is in fact the file the publisher meant to publish.</p>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

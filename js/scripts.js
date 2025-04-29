@@ -1,5 +1,4 @@
 function getComponentPath(componentName) {
-    // Always go up one directory to components for lab files
     return "../components/" + componentName + ".html";
 }
 

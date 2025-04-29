@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encrypting and Decrypting Data Using OpenSSL</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <div class="report-header" role="banner"></div>
+
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Encrypting Messages with OpenSSL</p>
+                <p>Part 2: Decrypting Messages with OpenSSL</p>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library. In this lab, you will use OpenSSL to encrypt and decrypt text messages.</p>
+                
+                <p><strong>Note</strong>: While OpenSSL is the de facto cryptography library today, the use presented in this lab is NOT recommended for robust protection. Below are two security problems with this lab:</p>
+                
+                <ol>
+                    <li>The method described in this lab uses a weak key derivation function. The ONLY security is introduced by a very strong password.</li>
+                    <li>The method described in this lab does not guarantee the integrity of the text file.</li>
+                </ol>
+                
+                <p>This lab should be used for instructional purposes only. The methods presented here should NOT be used to secure truly sensitive data.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation virtual machine</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Encrypting Messages with OpenSSL</h3>
+                <p>OpenSSL can be used as a standalone tool for encryption. While many encryption algorithms can be used, this lab focuses on AES. To use AES to encrypt a text file directly from the command line using OpenSSL, follow the steps below:</p>
+
+                <h4>Encrypting a Text File</h4>
+                <p>a. Log into CyberOPS Workstation VM.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>b. Open a terminal window.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>c. Because the text file to be encrypted is in the /home/analyst/lab.support.files/ directory, change to that directory:</p>
+                <pre>[analyst@secOps ~]$ <strong>cd ./lab.support.files/</strong>
+[analyst@secOps lab.support.files]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>d. Type the command below to list the contents of the encrypted <strong>letter_to_grandma.txt</strong> text file on the screen:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat letter_to_grandma.txt</strong>
+
+Hi Grandma,
+
+I am writing this letter to thank you for the chocolate chip cookies you sent me. I got them this morning and I have already eaten half of the box! They are absolutely delicious!
+
+I wish you all the best. Love,
+
+Your cookie-eater grandchild.
+
+[analyst@secOps lab.support.files]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>e. From the same terminal window, issue the command below to encrypt the text file. The command will use AES-256 to encrypt the text file and save the encrypted version as <strong>message.enc</strong>. OpenSSL will ask for a password and for password confirmation. Provide the password as requested and be sure to remember the password.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl aes-256-cbc -in letter_to_grandma.txt -out message.enc</strong>
+
+enter aes-256-cbc encryption password:
+
+Verifying - enter aes-256-cbc encryption password:
+
+[analyst@secOps lab.support.files]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Document the password.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>f. When the process is finished, use the <strong>cat</strong> command again to display the contents of the <strong>message.enc</strong> file.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat message.enc</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Did the contents of the <strong>message.enc</strong> file display correctly? What does it look like? Explain.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>g. To make the file readable, run the OpenSSL command again, but this time add the <strong>-a</strong> option. The <strong>-a</strong> option tells OpenSSL to encode the encrypted message using a different encoding method of Base64 before storing the results in a file.</p>
+                
+                <p><strong>Note</strong>: Base64 is a group of similar binary-to-text encoding schemes used to represent binary data in an ASCII string format.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl aes-256-cbc -a -in letter_to_grandma.txt -out message.enc</strong>
+
+enter aes-256-cbc encryption password:
+
+Verifying - enter aes-256-cbc encryption password:
+</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>h. Once again, use the <strong>cat</strong> command to display the contents of the, now re-generated, <strong>message.enc</strong> file:</p>
+                
+                <p><strong>Note</strong>: The contents of <strong>message.enc</strong> will vary.</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat message.enc</strong>
+
+U2FsdGVkX19ApWyrn8RD5zNp0RPCuMGZ98wDc26u/vmj1zyDXobGQhm/dDRZasG7
+
+rfnth5Q8NHValEw8vipKGM66dNFyyr9/hJUzCoqhFpRHgNn+Xs5+TOtz/QCPN1bi
+
+08LGTSzOpfkg76XDCk8uPy1hl/+Ng92sM5rgMzLXfEXtaYe5UgwOD42U/U6q73pj
+
+a1ksQrTWsv5mtN7y6mh02Wobo3A1ooHrM7niOwK1a3YKrSp+ZhYzVTrtksWDl6Ci
+
+XMufkv+FOGn+SoEEuh7l4fk0LIPEfGsExVFB4TGdTiZQApRw74rTAZaE/dopaJn0
+
+sJmR3+3C+dmgzZIKEHWsJ2pgLvj2Sme79J/XxwQVNpw=
+
+[analyst@secOps lab.support.files]$</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Is <strong>message.enc</strong> displayed correctly now? Explain.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Can you think of a benefit of having <strong>message.enc</strong> Base64-encoded?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h3>Part 2: Decrypting Messages with OpenSSL</h3>
+                <p>With a similar OpenSSL command, it is possible to decrypt <strong>message.enc</strong>.</p>
+
+                <p>i. Use the command below to decrypt message.enc:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>openssl aes-256-cbc --a -d -in message.enc -out decrypted_letter.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>j. OpenSSL will ask for the password used to encrypt the file. Enter the same password again.</p>
+                
+                <div class="screenshot-container"></div>
+
+                <p>k. When OpenSSL finishes decrypting the <strong>message.enc</strong> file, it saves the decrypted message in a text file called <strong>decrypted_letter.txt</strong>. Use the <strong>cat</strong> display the contents of <strong>decrypted_letter.txt</strong>:</p>
+                <pre>[analyst@secOps lab.support.files]$ <strong>cat decrypted_letter.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <p class="question">Was the letter decrypted correctly?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">The command used to decrypt also contains -a option. Can you explain?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>
