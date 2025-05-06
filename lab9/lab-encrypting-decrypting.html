@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encrypting and Decrypting Data Using a Hacker Tool</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>Part 1: Create and Encrypt Files</p>
+                <p>Part 2: Recover Encrypted Zip File Passwords</p>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>What if you work for a large corporation that had a corporate policy regarding removable media? Specifically, it states that only encrypted zipped documents can be copied to portable USB flash drives.</p>
+                
+                <p>In this scenario, the Chief Financial Officer (CFO) is out-of-town on business and has contacted you in a panic with an emergency request for help. While out-of-town on business, he attempted to unzip important documents from an encrypted zip file on a USB drive. However, the password provided to open the zip file is invalid. The CFO contacted you to see if there was anything you could to do.</p>
+                
+                <p><strong>Note</strong>: The provided scenario is simple and only serves as an example.</p>
+                
+                <p>There may some tools available to recover lost passwords. This is especially true in situations such as this where the cybersecurity analyst could acquire pertinent information from the CFO. The pertinent information could be the length of the password and an idea of what it could be. Knowing pertinent information dramatically helps when attempting to recover passwords.</p>
+                
+                <p>Examples of password recovery utilities and programs include hashcat, John the Ripper, Lophtcrack, and others. In our scenario, we will use <strong>fcrackzip</strong> which is a simple Linux utility to recover the passwords of encrypted zip files.</p>
+                
+                <p>Consider that these same tools can be used by cybercriminals to discover unknown passwords. Although they would not have access to some pertinent information, with time, it is possible to discover passwords to open encrypted zip files. The amount of time required depends on the password strength and the password length. Longer and more complex passwords (mix of different types of characters) are more secure.</p>
+                
+                <p>In this lab, you will:</p>
+                <ul>
+                    <li>Create and encrypt sample text files.</li>
+                    <li>Decrypt the encrypted zip file.</li>
+                </ul>
+                
+                <p><strong>Note:</strong> This lab should be used for instructional purposes only. The methods presented here should NOT be used to secure truly sensitive data.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>CyberOps Workstation virtual machine</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Create and Encrypt Files</h3>
+                <p>In this part, you will create a few text files that will be used to created encrypted zip files in the next step.</p>
+
+                <h4>Step 1: Create text files.</h4>
+                <p>a. Start the CyberOps Workstation VM.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>b. Open a terminal window. Verify that you are in the analyst home directory. Otherwise, enter <strong>cd ~</strong> at the terminal prompt.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>c. Create a new folder called Zip-Folder using the <strong>mkdir Zip-Folder</strong> command.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>d. Move into that directory using the <strong>cd Zip-Folder</strong> command.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>e. Enter the following to create three text files.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>echo This is a sample text file > sample-1.txt</strong>
+[analyst@secOps Zip-Folder]$ <strong>echo This is a sample text file > sample-2.txt</strong>
+[analyst@secOps Zip-Folder]$ <strong>echo This is a sample text file > sample-3.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p>f. Verify that the files have been created, using the <strong>ls</strong> command.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>ls -l</strong>
+total 12
+-rw-r--r-- 1 analyst analyst 27 May 13 10:58 sample-1.txt
+-rw-r--r-- 1 analyst analyst 27 May 13 10:58 sample-2.txt
+-rw-r--r-- 1 analyst analyst 27 May 13 10:58 sample-3.txt</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Step 2: Zip and encrypt the text files.</h4>
+                <p>Next, we will create several encrypted zipped files using varying password lengths. To do so, all three text files will be encrypted using the <strong>zip</strong> utility.</p>
+                
+                <p>g. Create an encrypted zip file called <strong>file-1.zip</strong> containing the three text files using the following command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>zip --e file-1.zip sample*</strong></pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p>h. When prompted for a password, enter a one-character password of your choice. In the example, the letter <strong>B</strong> was entered. Enter the same letter when prompted to verify.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>zip -e file-1.zip sample*</strong>
+Enter password: 
+Verify password:
+adding: sample-1.txt (stored 0%)
+adding: sample-2.txt (stored 0%)
+adding: sample-3.txt (stored 0%)</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p>i. Repeat the procedure to create the following 4 other files</p>
+                <ul>
+                    <li><strong>file-2.zip</strong> using a 2-character password of your choice. In our example, we used <strong>R2</strong>.</li>
+                    <li><strong>file-3.zip</strong> using a 3-character password of your choice. In our example, we used <strong>0B1</strong>.</li>
+                    <li><strong>file-4.zip</strong> using a 4-character password of your choice. In our example, we used <strong>Y0Da</strong>.</li>
+                    <li><strong>file-5.zip</strong> using a 5-character password of your choice. In our example, we used <strong>C-3P0</strong>.</li>
+                </ul>
+
+                <div class="screenshot-container"></div>
+                
+                <p>j. Verify that all zipped files have been created using the <strong>ls -l f*</strong> command.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>ls -l f*</strong>
+-rw-r--r-- 1 analyst analyst 643 May 13 11:01 file-1.zip
+-rw-r--r-- 1 analyst analyst 643 May 13 11:02 file-2.zip
+-rw-r--r-- 1 analyst analyst 643 May 13 11:03 file-3.zip
+-rw-r--r-- 1 analyst analyst 643 May 13 11:03 file-4.zip
+-rw-r--r-- 1 analyst analyst 643 May 13 11:03 file-5.zip</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p>k. Attempt to open a zip using an incorrect password as shown.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>unzip file-1.zip</strong>
+Archive: file-1.zip
+[file-1.zip] sample-1.txt password: 
+password incorrect--reenter: 
+password incorrect--reenter: 
+skipping: sample-1.txt  incorrect password
+[file-1.zip] sample-2.txt password: 
+password incorrect--reenter: 
+password incorrect--reenter: 
+skipping: sample-2.txt  incorrect password
+[file-1.zip] sample-3.txt password: 
+password incorrect--reenter: 
+password incorrect--reenter: 
+skipping: sample-3.txt  incorrect password</pre>
+
+                <div class="screenshot-container"></div>
+
+                <h3>Part 2: Recover Encrypted Zip File Passwords</h3>
+                <p>In this part, you will use the <strong>fcrackzip</strong> utility to recover lost passwords from encrypted zipped files. Fcrackzip searches each zip file given for encrypted files and tries to guess the password using brute-force methods.</p>
+                
+                <p>The reason we created zip files with varying password lengths was to see if password length influences the time it takes to discover a password.</p>
+
+                <h4>Step 1: Introduction to fcrackzip</h4>
+                <p>From the terminal window, enter the <strong>fcrackzip --h</strong> command to see the associated command options.</p>
+                
+                <div class="screenshot-container"></div>
+                
+                <p>In our examples, we will be using the <strong>--v</strong>, <strong>-u</strong>, and <strong>-l</strong> command options. The -l option will be listed last because it specifies the possible password length. Feel free to experiment with other options.</p>
+
+                <h4>Step 2: Recovering Passwords using fcrackzip</h4>
+                <p>a. Now attempt to recover the password of the <strong>file-1.zip</strong> file. Recall, that a one-character password was used to encrypt the file. Therefore, use the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip -vul 1-4 file-1.zip</strong>
+found file 'sample-1.txt', (size cp/uc 39/ 27, flags 9, chk 5754)
+found file 'sample-2.txt', (size cp/uc 39/ 27, flags 9, chk 5756)
+found file 'sample-3.txt', (size cp/uc 39/ 27, flags 9, chk 5757)
+PASSWORD FOUND!!!!: pw == B</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p><strong>Note</strong>: The password length could have been set to less than 1 -- 4 characters.</p>
+                
+                <p class="question">How long does it take to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>b. Now attempt to recover the password of the <strong>file-2.zip</strong> file. Recall, that a two-character password was used to encrypt the file. Therefore, use the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip --vul 1-4 file-2.zip</strong>
+found file 'sample-1.txt', (size cp/uc 39/ 27, flags 9, chk 5754)
+found file 'sample-2.txt', (size cp/uc 39/ 27, flags 9, chk 5756)
+found file 'sample-3.txt', (size cp/uc 39/ 27, flags 9, chk 5757)
+PASSWORD FOUND!!!!: pw == R2</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p class="question">How long does it take to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>c. Repeat the procedure and recover the password of the <strong>file-3.zip</strong> file. Recall, that a three-character password was used to encrypt the file. Time to see how long it takes to discover a 3-letter password. Use the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip --vul 1-4 file-3.zip</strong>
+found file 'sample-1.txt', (size cp/uc 39/ 27, flags 9, chk 5754)
+found file 'sample-2.txt', (size cp/uc 39/ 27, flags 9, chk 5756)
+found file 'sample-3.txt', (size cp/uc 39/ 27, flags 9, chk 5757)
+PASSWORD FOUND!!!!: pw == 0B1</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p class="question">How long does it take to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>d. How long does it take to crack a password of four characters? Repeat the procedure and recover the password of the <strong>file-4.zip</strong> file. Time to see how long it takes to discover the password using the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip --vul 1-4 file-4.zip</strong>
+found file 'sample-1.txt', (size cp/uc 39/ 27, flags 9, chk 5754)
+found file 'sample-2.txt', (size cp/uc 39/ 27, flags 9, chk 5756)
+found file 'sample-3.txt', (size cp/uc 39/ 27, flags 9, chk 5757)
+checking pw X9M~
+PASSWORD FOUND!!!!: pw == Y0Da</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p class="question">How long does it take to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>e. How long does it take to crack a password of five characters? Repeat the procedure and recover the password of the <strong>file-5.zip</strong> file. The password length is five characters, so we need to set the <strong>-l</strong> command option to <strong>1-5</strong>. Again, time to see how long it takes to discover the password using the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip --vul 1-5 file-5.zip</strong>
+found file 'sample-1.txt', (size cp/uc 39/ 27, flags 9, chk 5754)
+found file 'sample-2.txt', (size cp/uc 39/ 27, flags 9, chk 5756)
+found file 'sample-3.txt', (size cp/uc 39/ 27, flags 9, chk 5757)
+checking pw C-H*~
+PASSWORD FOUND!!!!: pw == C-3P0</pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p class="question">How long does it take to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>f. Recover a 6 Character Password using fcrackzip.</p>
+                <p>It appears that longer passwords take more time to discover and therefore, they are more secure. However, a 6 character password would not deter a cybercriminal.</p>
+                
+                <p class="question">How long do you think it would take fcrackzip to discover a 6-character password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>To answer that question, create a file called <strong>file-6.zip</strong> using a 6-character password of your choice. In our example, we used <strong>JarJar</strong>.</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>zip --e file-6.zip sample*</strong></pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p>g. Repeat the procedure to recover the password of the <strong>file-6.zip</strong> file using the following <strong>fcrackzip</strong> command:</p>
+                <pre>[analyst@secOps Zip-Folder]$ <strong>fcrackzip --vul 1-6 file-6.zip</strong></pre>
+
+                <div class="screenshot-container"></div>
+                
+                <p class="question">How long does it take fcrackzip to discover the password?</p>
+                <div class="text-answer" contenteditable="true"></div>
+                
+                <p>The simple truth is that longer passwords are more secure because they take longer to discover.</p>
+                
+                <p class="question">How long would you recommend a password needs to be for it to be secure?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+</body>
+</html>
