@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interpret HTTP and DNS Data to Isolate Threat Actor</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/ui-controls.js"></script>
+    <script src="../js/screenshot-handler.js"></script>
+    <script src="../js/scripts.js"></script>
+</head>
+<body>
+    <!-- Report header will be loaded here -->
+    <div class="report-header" role="banner"></div>
+
+    <!-- Control buttons will be loaded here -->
+    <div class="controls-container" role="navigation"></div>
+
+    <main role="main">
+        <article>
+            <section>
+                <h2>Objectives</h2>
+                <p>In this lab, you will review logs of an exploitation of documented HTTP and DNS vulnerabilities.</p>
+                <ul>
+                    <li>Part 1: Investigate an SQL Injection Attack</li>
+                    <li>Part 2: Investigate DNS Data Exfiltration</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Background / Scenario</h2>
+                <p>MySQL is a popular database used by numerous web applications. Unfortunately, SQL injection is a common web hacking technique. It is a code injection technique where an attacker executes malicious SQL statements to control a web application's database server.</p>
+                <p>Domain name servers (DNS) are directories of domain names, and they translate the domain names into IP addresses. This service can be used to exfiltrate data.</p>
+                <p>Cybersecurity personnel have determined that an exploit has occurred, and data containing PII may have been exposed to threat actors. In this lab, you will use Kibana to investigate the exploits to determine the data that was exfiltrated using HTTP and DNS during the attacks.</p>
+            </section>
+
+            <section>
+                <h2>Required Resources</h2>
+                <ul>
+                    <li>Security Onion virtual machine</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Instructions</h2>
+
+                <h3>Part 1: Investigate an SQL Injection Attack</h3>
+                <p>In this part, you will investigate an exploit in which unauthorized access was made to sensitive information that is stored on a web server. You will use Kibana to determine the source of the attack and the information accessed by the attacker.</p>
+
+                <h4>Step 1: Change the timeframe.</h4>
+                <p>It has been determined that the exploit happened at some time during the month of June 2020. Kibana defaults to displaying data for the last 24 hours. You will need to change the time settings to see the data for the month of June 2020.</p>
+
+                <p>a. Start the Security Onion VM and login with the username <strong>analyst</strong> and the password <strong>cyberops</strong>.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>b. Enter the <strong>sudo so-status</strong> command to check the status of services. The status for all the services should be <strong>OK</strong> before starting your analysis. This could take a few minutes.</p>
+                <pre>analyst@SecOnion:~$ <strong>sudo so-status</strong>
+
+Status: securityonion
+* sguil server [ OK ]
+
+Status: seconion-import
+* pcap_agent (sguil) [ OK ]
+* snort_agent-1 (sguil) [ OK ]
+* barnyard2-1 (spooler, unified2 format) [ OK ]
+
+Status: Elastic stack
+* so-elasticsearch [ OK ]
+* so-logstash [ OK ]
+* so-kibana [ OK ]
+* so-freqserver [ OK ]</pre>
+                
+                <div class="screenshot-container"></div>
+
+                <p>c. After you log in, open Kibana using the shortcut on the Desktop. Login with the username <strong>analyst</strong> and the password <strong>cyberops</strong>.</p>
+
+                <p>In Security Onion, Kibana has many pre-built dashboards and visualizations for monitoring and analysis. You can also create your own custom dashboards and visualizations catered to monitoring your particular network environment. <strong>Note</strong>: Your dashboard may not have any results in the last 24 hours.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>d. In the upper-right corner of the window, click <strong>Last 24 hours</strong> to change the sample Time Range size. Expand the time range to include the interesting alerts. An SQL injection attack took place in June 2020 so that is what you need to target. Select <strong>Absolute</strong> under Time Range and edit the <strong>From</strong> and <strong>To</strong> times to include the entire month of June in 2020. Click <strong>Go</strong> to continue.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>e. Notice the total number of logs for the entire month of June 2020. Your dashboard should be similar to that shown in the figure. Take a moment to explore the information that is provided by the Kibana interface.</p>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Step 2: Filter for HTTP traffic.</h4>
+                <p>f. Because the threat actor accessed data that is stored on a web server, the HTTP filter is used to select the logs associated with HTTP traffic. Select HTTP under the Zeek Hunting heading, as shown in the figure.</p>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">Scroll through the results and answer the following questions:</p>
+                <p class="question">What is the source IP address?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the destination IP address?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the destination port number?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>g. Scroll down to the HTTP Logs. The results list the first 10 results.</p>
+
+                <p>h. Expand the details of the first result by clicking the arrow that is next to the log entry timestamp. Note the information that is available.</p>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">What is the timestamp of the first result?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the event type?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is included in the message field? These are details about the HTTP GET request that was made by the client to the server. Focus especially on the <strong>uri</strong> field in the message text.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What is the significance of this information?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h4>Step 3: Review the results.</h4>
+                <p>i. Some of the information for the log entries is hyperlinked to other tools. Click the value in the alert <strong>_id</strong> field of the log entry to get a different view on the event.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>j. The result opens in a new web browser tab with information from capME!. capME! tab is a web interface that allows you to view a pcap transcript. The blue text contains HTTP requests that are sent from the source (SRC). The red text is responses from the destination web server (DST).</p>
+
+                <p>k. In the Log entry section, which is at the beginning of the transcript, notice the portion <strong>username='+union+select+ccid,ccnumber,ccv,expiration,null+from+credit_cards+--+&password=</strong> indicates that someone may have tried to attack the web browser using SQL injection to bypass authentication. The keywords, <strong>union</strong> and <strong>select</strong>, are commands that are used in searching for information in a SQL database. If the input boxes on a web page are not properly protected from illegal input, threat actors can inject SQL search strings or other code that can access data contained in databases that are linked to the web page.</p>
+
+                <p>l. Find for the keyword <strong>username</strong> in the transcript. Use <strong>Ctrl-F</strong> to open a search box. Use the down arrow button in the search box to scroll through the occurrences that were found.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>You can see where the term username was used in the web interface that is displayed to the user. However, if you look farther down, something unusual can be found.</p>
+
+                <h4>Questions:</h4>
+                <p class="question">What do you see later in the transcript as regards usernames?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">Give some examples of a username, password, and signature that was exfiltrated.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p>m. Close the capME! tab and return to Kibana.</p>
+
+                <h3>Part 2: Analyze DNS exfiltration.</h3>
+                <p>A network administrator has noticed abnormally long DNS queries with strange looking subdomains. Your job is to investigate the anomaly.</p>
+
+                <h4>Step 1: Filter for DNS traffic.</h4>
+                <p>n. From the top of the Kibana Dashboard, clear any filters and search terms and click <strong>Home</strong> under the Navigation section of the Dashboard. The Time period should still include June 2020.</p>
+
+                <p>o. In the same area of the Dashboard, click <strong>DNS</strong> in the Zeek Hunting section. Notice the DNS Log Count metrics and Destination Port horizontal bar chart.</p>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Step 2: Review the DNS-related entries.</h4>
+                <p>p. Scroll down the window. You can see the top DNS query types. You may see address records (A record), IPv6 address Quad A records (AAAA), NetBIOS records (NB) and a pointer records for resolving the hostnames (PTR). You can also see the DNS response codes.</p>
+
+                <p>q. By Scrolling further down, you can see a list of the top DNS clients and DNS Servers based on their request and response counts. There is also a metric for number of DNS Phishing attempts, which are also known as DNS pharming, spoofing, or poisoning.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>r. Scrolling further down the window you can see a listing of the top DNS queries by domain name. Notice how some of the queries have unusually long subdomains attached to ns.example.com. The domain example.com should be investigated further.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>s. Scroll back to the top of the window and enter <strong>example.com</strong> in the search bar to filter for example.com and click <strong>Update</strong>. Note that the number of entries in the Log Count is smaller because the display is now limited to requests to the example.com server.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>t. Locate information about the DNS - Client and DNS - Server.</p>
+
+                <h4>Question:</h4>
+                <p class="question">Record the IP addresses of DNS client and server.</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <h4>Step 3: Determine the exfiltrated data.</h4>
+                <p>u. Continue to scroll further down to see four unique log entries for DNS queries to example.com. Notice how the queries are to suspiciously long subdomains attached to ns.example.com. The long strings of numbers and letters in the subdomains look like text encoded into hexadecimal (0-9, a-f) rather than legitimate subdomain names. Click the <strong>Export: Raw</strong> download link to download the queries to an external file. A CSV file is downloaded to the /home/analyst/Downloads folder.</p>
+
+                <div class="screenshot-container"></div>
+
+                <p>v. Navigate to the <strong>/home/analyst/Downloads</strong> folder. Open the file using a text editor, such as gedit. Edit the file by deleting the text surrounding the hexadecimal portion of the subdomains, leaving only the hexadecimal characters. Be sure to remove the quotes too. The contents of your file should look like the information below. Save the edited text file with the original file name.</p>
+
+                <pre>434f4e464944454e5449414c20444f43554d454e540a444f204e4f542053
+484152450a5468697320646f63756d656e7420636f6e7461696e7320696e
+666f726d6174696f6e2061626f757420746865206c617374207365637572
+697479206272656163682e0a</pre>
+
+                <div class="screenshot-container"></div>
+
+                <p>w. In a terminal, use the <strong>xxd</strong> command to decode the text in the CSV file and save it to a file named secret.txt. Use <strong>cat</strong> to output the contents of secret.txt to the console.</p>
+
+                <pre>analyst@SecOnion:~/Downloads$ <strong>xxd -r -p "DNS - Queries.csv" > secret.txt</strong>
+analyst@SecOnion:~/$ <strong>cat secret.txt</strong></pre>
+
+                <div class="screenshot-container"></div>
+
+                <h4>Questions:</h4>
+                <p class="question">Were the subdomains from the DNS queries subdomains? If not, what is the text?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What does this result imply about these particular DNS requests? What is the larger significance?</p>
+                <div class="text-answer" contenteditable="true"></div>
+
+                <p class="question">What may have created these encoded DNS queries and why was DNS selected as the means to exfiltrate data?</p>
+                <div class="text-answer" contenteditable="true"></div>
+            </section>
+        </article>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComponent('header', '.report-header');
+            loadComponent('controls', '.controls-container');
+            
+            // Re-initialize screenshot containers if needed
+            document.querySelectorAll('.screenshot-container').forEach(() => {
+                loadComponent('screenshot-container', '.screenshot-container');
+            });
+        });
+    </script>
+</body>
+</html>
